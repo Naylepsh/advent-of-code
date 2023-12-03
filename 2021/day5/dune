@@ -1,0 +1,8 @@
+(env
+  (dev
+    (flags (:standard -w -32))))
+
+(executable
+  (libraries re2)
+  (preprocess (pps ppx_deriving.show ppx_deriving.ord))
+  (name day5))

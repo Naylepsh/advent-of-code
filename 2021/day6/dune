@@ -1,0 +1,6 @@
+(env
+  (dev
+    (flags (:standard -w -32))))
+
+(executable
+  (name day6))
