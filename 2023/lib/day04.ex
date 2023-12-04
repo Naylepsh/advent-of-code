@@ -6,10 +6,9 @@ defmodule Day04 do
   end
 
   def matching_cards_count(winning_cards, cards) do
-    MapSet.intersection(
-      cards |> MapSet.new(),
-      winning_cards |> MapSet.new()
-    )
+    winning_cards
+    |> MapSet.new()
+    |> MapSet.intersection(cards |> MapSet.new())
     |> MapSet.size()
   end
 
@@ -35,13 +34,8 @@ defmodule Day04 do
     matching_cards_count(winning_cards, cards) |> len_to_score()
   end
 
-  defp len_to_score(len) do
-    if(len == 0) do
-      0
-    else
-      Integer.pow(2, len - 1)
-    end
-  end
+  defp len_to_score(0), do: 0
+  defp len_to_score(len), do: Integer.pow(2, len - 1)
 
   defp get_numbers(s), do: String.split(s)
 
@@ -64,9 +58,7 @@ defmodule Day04 do
     |> Enum.with_index()
     |> Enum.reduce(
       init_acc(lines),
-      fn {line, idx}, acc ->
-        play(line, idx, acc)
-      end
+      fn {line, idx}, acc -> play(line, idx, acc) end
     )
   end
 
@@ -100,9 +92,7 @@ defmodule Day04 do
     if current == nil do
       acc
     else
-      inc = 1 + bonus
-      val = current + inc
-      bump_acc(tail, Map.put(acc, head, val), bonus)
+      bump_acc(tail, Map.put(acc, head, current + 1 + bonus), bonus)
     end
   end
 end
