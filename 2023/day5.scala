@@ -130,14 +130,15 @@ def smallestLocationInRange(seedRanges: SeedRanges, maps: Maps): BigInt =
 def smallestLocationInRange(
     seedRanges: SeedRanges,
     maps: Maps,
-    n: BigIn
+    n: BigInt
 ): BigInt =
   // Low-effort bruteforce,
   // Garbage tier performance,
   // You love to see it
   if SeedRanges.contains(seedRanges)(maps.emap(n)) then n
   else
-    println(s"$n / ???")
+    if n % 1_000_000 == 0 then 
+      println(s"$n / ???")
     smallestLocationInRange(seedRanges, maps, n + 1)
 
 @main def run: Unit =
