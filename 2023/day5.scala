@@ -1,4 +1,7 @@
+//> using dep "org.typelevel::cats-core:2.10.0"
+
 import scala.annotation.tailrec
+import cats.syntax.all.*
 
 object V2:
   case class Range(from: BigInt, to: BigInt)
@@ -6,65 +9,81 @@ object V2:
     def apply(from: BigInt, to: BigInt): Range =
       new Range(from.min(to), from.max(to))
 
-    def apply(range: Range, rangeMap: RangeMap): List[Range] =
+    def apply(range: Range, rangeMap: RangeMap): Option[(Range, List[Range])] =
       val other = rangeMap.asRange
 
       val result =
         if other.to < range.from then
           //        [---]
           //  [---]
-          List.empty
+          None
         else if other.from <= range.from && range.from < other.to then
           //   [----]
           // [-------]
-          List(
-            Range(range.from + rangeMap.offset, range.to + rangeMap.offset)
-          )
+          (
+            Some(
+              // the common subset with mapping applied
+              Range(range.from + rangeMap.offset, range.to + rangeMap.offset),
+              List.empty
+            ),
+        )
         else if other.from <= range.from && other.to <= range.from then
           //    [----]
           // [----]
-          List(
-            // the common subset with mapping applied
+          // the common subset with mapping applied
+          Some(
             Range(range.from + rangeMap.offset, other.to + rangeMap.offset),
-            // the right of range without mapping
-            Range(other.to, range.to)
+            // the right of range without mapping,
+            List(Range(other.to, range.to))
           )
         else if range.from <= other.from && other.to <= range.to then
           // [-------]
           //  [----]
-          List(
-            // the left of range without mapping
-            Range(range.from, other.from),
+          //
+          Some(
             // the common subset with mapping applied
             Range(other.from + rangeMap.offset, other.to + rangeMap.offset),
-            // the left of range without mapping
-            Range(other.to, range.to)
+            List(
+              // the left of range without mapping
+              Range(range.from, other.from),
+              // the left of range without mapping
+              Range(other.to, range.to)
+            )
           )
         else if other.from <= range.to && range.to <= other.to then
           // [----]
           //   [----]
-          List(
-            // the left of range without mapping
-            Range(range.from, other.from),
-            // the common subset with mapping applied
-            Range(other.from + rangeMap.offset, range.to + rangeMap.offset)
+          // the common subset with mapping applied
+          Some(
+            Range(other.from + rangeMap.offset, range.to + rangeMap.offset),
+            List(
+              // the left of range without mapping
+              Range(range.from, other.from)
+            )
           )
         else
           //  [---]
           //        [---]
-          List.empty
+          None
       println(s"[apply-single]($range, $rangeMap) = $result")
       result
 
     def apply(range: Range, rangeMaps: List[RangeMap]): List[Range] =
       // Apply all range maps to the range
-      val applied = rangeMaps
-        .flatMap(Range.apply(range, _))
-        .sortBy(_.from) match
-        case Nil    => range :: Nil
-        case ranges => ranges
-      println(s"[apply-many]($range, $rangeMaps) = $applied")
-      applied
+      var applied = List.empty[Range]
+      var leftover = List.empty[Range]
+      rangeMaps
+        .foreach: map =>
+          Range.apply(range, map) match
+            case None =>
+            case Some(matched, leftoverParts) =>
+              applied = matched :: leftoverParts
+              leftover = leftover ::: leftoverParts
+      if applied.isEmpty then applied = range :: Nil
+
+      // TODO: Need to handle leftovers, but what to do with them?
+      println(s"[apply-many]($range, $rangeMaps) = $applied and $leftover")
+      applied 
 
     def apply(
         ranges: List[Range],
