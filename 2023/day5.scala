@@ -33,6 +33,15 @@ object ThingMap:
         r.destinationStart + offset
       .getOrElse(a)
 
+  def emap(ranges: ThingMap)(a: BigInt): BigInt =
+    ranges
+      .find: r =>
+        r.destinationStart <= a && a < r.destinationStart + r.range
+      .map: r =>
+        val offset = a - r.destinationStart
+        r.sourceStart + offset
+      .getOrElse(a)
+
 case class Maps(
     seedToSoil: ThingMap,
     soilToFertilizer: ThingMap,
@@ -50,6 +59,15 @@ case class Maps(
       .andThen(ThingMap.map(lightToTemperature))
       .andThen(ThingMap.map(temperatureToHumidity))
       .andThen(ThingMap.map(humidityToLocation))(a)
+
+  def emap(a: BigInt): BigInt =
+    ThingMap.emap(humidityToLocation)
+      .andThen(ThingMap.emap(temperatureToHumidity))
+      .andThen(ThingMap.emap(lightToTemperature))
+      .andThen(ThingMap.emap(waterToLight))
+      .andThen(ThingMap.emap(fertilizerToWater))
+      .andThen(ThingMap.emap(soilToFertilizer))
+      .andThen(ThingMap.emap(seedToSoil))(a)
 
 type Seeds = List[BigInt]
 
@@ -88,7 +106,47 @@ def smallestLocation(seeds: Seeds, maps: Maps): BigInt =
       maps.map(seed)
     .min
 
+type SeedRanges = List[(BigInt, BigInt)]
+object SeedRanges:
+  def fromSeeds(seeds: Seeds): SeedRanges =
+    seeds
+      .grouped(2)
+      .map:
+        case start :: range :: Nil => start -> range
+      .toList
+
+  def contains(ranges: SeedRanges)(a: BigInt): Boolean =
+    @tailrec
+    def aux(ranges: SeedRanges): Boolean =
+      ranges match
+        case Nil => false
+        case (start, range) :: tail =>
+          if start <= a && a <= start + range then true else aux(tail)
+
+    aux(ranges)
+
+def smallestLocationInRange(seedRanges: SeedRanges, maps: Maps): BigInt =
+  smallestLocationInRange(seedRanges, maps, 0)
+def smallestLocationInRange(
+    seedRanges: SeedRanges,
+    maps: Maps,
+    n: BigIn
+): BigInt =
+  // Low-effort bruteforce,
+  // Garbage tier performance,
+  // You love to see it
+  if SeedRanges.contains(seedRanges)(maps.emap(n)) then n
+  else
+    println(s"$n / ???")
+    smallestLocationInRange(seedRanges, maps, n + 1)
+
 @main def run: Unit =
   val lines         = scala.io.Source.fromFile("./day5.input").getLines.toList
   val (seeds, maps) = Parser.parse(lines)
+
+  // part 1
   println(smallestLocation(seeds, maps))
+
+  // part 2
+  val ranges = SeedRanges.fromSeeds(seeds)
+  println(smallestLocationInRange(ranges, maps))

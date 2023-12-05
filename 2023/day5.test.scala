@@ -115,3 +115,52 @@ class Day5Tests extends munit.FunSuite:
     )
     val res = ThingMap.map(map)(13)
     assert(res == 13)
+
+
+  test("emapping in range"):
+    val map = List(
+      ThingRange(98, 50, 2),
+      ThingRange(50, 52, 48)
+    )
+    val res = ThingMap.emap(map)(81)
+    assert(res == 79)
+
+
+  test("emapping entire map"):
+    val maps = Maps(
+      seedToSoil = List(
+        ThingRange(98, 50, 2),
+        ThingRange(50, 52, 48)
+      ),
+      soilToFertilizer = List(
+        ThingRange(15, 0, 37),
+        ThingRange(52, 37, 2),
+        ThingRange(0, 39, 15)
+      ),
+      fertilizerToWater = List(
+        ThingRange(53, 49, 8),
+        ThingRange(11, 0, 42),
+        ThingRange(0, 42, 7),
+        ThingRange(7, 57, 4)
+      ),
+      waterToLight = List(
+        ThingRange(18, 88, 7),
+        ThingRange(25, 18, 70)
+      ),
+      lightToTemperature = List(
+        ThingRange(77, 45, 23),
+        ThingRange(45, 81, 19),
+        ThingRange(64, 68, 13)
+      ),
+      temperatureToHumidity = List(
+        ThingRange(69, 0, 1),
+        ThingRange(0, 1, 69)
+      ),
+      humidityToLocation = List(
+        ThingRange(56, 60, 37),
+        ThingRange(93, 56, 4)
+      )
+    )
+    val res = maps.emap(46)
+    assert(res == 82)
+
