@@ -17,7 +17,7 @@ object V2:
           //        [---]
           //  [---]
           None
-        else if other.from <= range.from && range.from < other.to then
+        else if other.from <= range.from && range.to < other.to then
           //   [----]
           // [-------]
           (
@@ -27,7 +27,7 @@ object V2:
               List.empty
             ),
         )
-        else if other.from <= range.from && other.to <= range.from then
+        else if other.from <= range.from && other.to <= range.to then
           //    [----]
           // [----]
           // the common subset with mapping applied
@@ -82,8 +82,15 @@ object V2:
       if applied.isEmpty then applied = range :: Nil
 
       // TODO: Need to handle leftovers, but what to do with them?
-      println(s"[apply-many]($range, $rangeMaps) = $applied and $leftover")
-      applied 
+      leftover
+        .map: r =>
+          trim(r, rangeMaps.map(_.asRange))
+        .foreach: rs =>
+          println(s"[apply-many]($range, $rangeMaps) usable leftovers: $rs")
+          applied = applied ::: rs
+
+      println(s"[apply-many]($range, $rangeMaps) = $applied")
+      applied
 
     def apply(
         ranges: List[Range],
@@ -97,6 +104,53 @@ object V2:
 
     def earliest(ranges: List[Range]): Option[Range] =
       ranges.sortBy(_.from).headOption
+
+    def trim(range: Range, ranges: List[Range]): List[Range] =
+      def aux(range: Range, ranges: List[Range]): List[Range] =
+        ranges match
+          case Nil => range :: Nil
+          case head :: tail =>
+            trim(range, head) match
+              case Nil      => range :: Nil
+              case r :: Nil => aux(r, tail)
+              case rs =>
+                rs.flatMap: r =>
+                  aux(r, tail)
+
+      aux(range, ranges)
+
+    def trim(range: Range, other: Range): List[Range] =
+      if other.to < range.from then List(range)
+      else if other.from <= range.from && range.from < other.to then
+        //   [----]
+        // [-------]
+        Nil
+      else if other.from <= range.from && other.to <= range.from then
+        //    [----]
+        // [----]
+        List(Range(other.to, range.to))
+      else if range.from <= other.from && other.to <= range.to then
+        // [-------]
+        //  [----]
+        //
+        List(
+          // the left of range without mapping
+          Range(range.from, other.from),
+          // the left of range without mapping
+          Range(other.to, range.to)
+        )
+      else if other.from <= range.to && range.to <= other.to then
+        // [----]
+        //   [----]
+        // the common subset with mapping applied
+        List(
+          // the left of range without mapping
+          Range(range.from, other.from)
+        )
+      else
+        //  [---]
+        //        [---]
+        Nil
 
   case class RangeMap(from: BigInt, to: BigInt, offset: BigInt):
     def asRange: Range = Range(from, to)
