@@ -1,5 +1,142 @@
 import scala.annotation.tailrec
 
+object V2:
+  case class Range(from: BigInt, to: BigInt)
+  object Range:
+    def apply(from: BigInt, to: BigInt): Range =
+      new Range(from.min(to), from.max(to))
+
+    def apply(range: Range, rangeMap: RangeMap): List[Range] =
+      val other = rangeMap.asRange
+
+      val result =
+        if other.to < range.from then
+          //        [---]
+          //  [---]
+          List.empty
+        else if other.from <= range.from && range.from < other.to then
+          //   [----]
+          // [-------]
+          List(
+            Range(range.from + rangeMap.offset, range.to + rangeMap.offset)
+          )
+        else if other.from <= range.from && other.to <= range.from then
+          //    [----]
+          // [----]
+          List(
+            // the common subset with mapping applied
+            Range(range.from + rangeMap.offset, other.to + rangeMap.offset),
+            // the right of range without mapping
+            Range(other.to, range.to)
+          )
+        else if range.from <= other.from && other.to <= range.to then
+          // [-------]
+          //  [----]
+          List(
+            // the left of range without mapping
+            Range(range.from, other.from),
+            // the common subset with mapping applied
+            Range(other.from + rangeMap.offset, other.to + rangeMap.offset),
+            // the left of range without mapping
+            Range(other.to, range.to)
+          )
+        else if other.from <= range.to && range.to <= other.to then
+          // [----]
+          //   [----]
+          List(
+            // the left of range without mapping
+            Range(range.from, other.from),
+            // the common subset with mapping applied
+            Range(other.from + rangeMap.offset, range.to + rangeMap.offset)
+          )
+        else
+          //  [---]
+          //        [---]
+          List.empty
+      println(s"[apply-single]($range, $rangeMap) = $result")
+      result
+
+    def apply(range: Range, rangeMaps: List[RangeMap]): List[Range] =
+      // Apply all range maps to the range
+      val applied = rangeMaps
+        .flatMap(Range.apply(range, _))
+        .sortBy(_.from) match
+        case Nil    => range :: Nil
+        case ranges => ranges
+      println(s"[apply-many]($range, $rangeMaps) = $applied")
+      applied
+
+    def apply(
+        ranges: List[Range],
+        rangeMapss: List[List[RangeMap]]
+    ): List[Range] =
+      // Keep applying continous range maps to all ranges until run out of range maps
+      rangeMapss match
+        case Nil => ranges
+        case head :: tail =>
+          Range.apply(ranges.flatMap(Range.apply(_, head)), tail)
+
+    def earliest(ranges: List[Range]): Option[Range] =
+      ranges.sortBy(_.from).headOption
+
+  case class RangeMap(from: BigInt, to: BigInt, offset: BigInt):
+    def asRange: Range = Range(from, to)
+
+  object RangeMap:
+    def parse(line: String): RangeMap =
+      val Array(destination, source, range) =
+        line.split(" ").map(BigInt(_)): @unchecked
+      val offset = destination - source
+
+      RangeMap(source, source + range, offset)
+
+    def parse(lines: List[String]): (List[RangeMap], List[String]) =
+      parse(lines, List.empty)
+
+    @tailrec
+    def parse(
+        lines: List[String],
+        acc: List[RangeMap]
+    ): (List[RangeMap], List[String]) =
+      lines match
+        case Nil          => (acc.reverse, Nil)
+        case "" :: tail   => (acc.reverse, tail)
+        case head :: tail => parse(tail, RangeMap.parse(head) :: acc)
+
+  object Parser:
+    def parse(lines: List[String]): (List[Range], List[List[RangeMap]]) =
+      val ranges =
+        lines.head
+          .split("seeds: ")
+          .tail
+          .head
+          .split(" ")
+          .map(BigInt(_))
+          .toList
+          .grouped(2)
+          .map:
+            case from :: range :: Nil =>
+              Range(from, from + range)
+          .toList
+
+      @tailrec
+      def aux(
+          lines: List[String],
+          maps: List[List[RangeMap]]
+      ): List[List[RangeMap]] =
+        lines match
+          case Nil => maps.reverse
+          case lines =>
+            val (map, leftoverLines) = RangeMap.parse(lines.tail)
+            aux(leftoverLines, map :: maps)
+
+      (ranges, aux(lines.tail.tail, List.empty))
+
+  def solve2(file: String): Unit =
+    val lines = scala.io.Source.fromFile(file).getLines.toList
+    val (ranges, rangeMaps) = Parser.parse(lines)
+
+    Range.earliest(Range.apply(ranges, rangeMaps)).foreach(println)
 case class ThingRange(
     sourceStart: BigInt,
     destinationStart: BigInt,
@@ -52,7 +189,8 @@ case class Maps(
     humidityToLocation: ThingMap
 ):
   def map(a: BigInt): BigInt =
-    ThingMap.map(seedToSoil)
+    ThingMap
+      .map(seedToSoil)
       .andThen(ThingMap.map(soilToFertilizer))
       .andThen(ThingMap.map(fertilizerToWater))
       .andThen(ThingMap.map(waterToLight))
@@ -61,7 +199,8 @@ case class Maps(
       .andThen(ThingMap.map(humidityToLocation))(a)
 
   def emap(a: BigInt): BigInt =
-    ThingMap.emap(humidityToLocation)
+    ThingMap
+      .emap(humidityToLocation)
       .andThen(ThingMap.emap(temperatureToHumidity))
       .andThen(ThingMap.emap(lightToTemperature))
       .andThen(ThingMap.emap(waterToLight))
@@ -137,17 +276,17 @@ def smallestLocationInRange(
   // You love to see it
   if SeedRanges.contains(seedRanges)(maps.emap(n)) then n
   else
-    if n % 1_000_000 == 0 then 
-      println(s"$n / ???")
+    if n % 1_000_000 == 0 then println(s"$n / ???")
     smallestLocationInRange(seedRanges, maps, n + 1)
 
 @main def run: Unit =
-  val lines         = scala.io.Source.fromFile("./day5.input").getLines.toList
-  val (seeds, maps) = Parser.parse(lines)
-
-  // part 1
-  println(smallestLocation(seeds, maps))
-
-  // part 2
-  val ranges = SeedRanges.fromSeeds(seeds)
-  println(smallestLocationInRange(ranges, maps))
+  // val lines = scala.io.Source.fromFile("./day5.input").getLines.toList
+  // val (seeds, maps) = Parser.parse(lines)
+  //
+  // // part 1
+  // println(smallestLocation(seeds, maps))
+  //
+  // // part 2
+  // val ranges = SeedRanges.fromSeeds(seeds)
+  // println(smallestLocationInRange(ranges, maps))
+  V2.solve2("./day5.input")
