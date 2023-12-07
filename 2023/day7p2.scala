@@ -12,11 +12,11 @@ object day7p2:
       FiveOfAKind
 
   object HandType:
-    private def of2(hand: List[Card]): HandType =
-      val cardCount = hand.groupBy(card => card).map(_._2.length).toList.sorted
+    private def ofInternal(hand: List[Card]): HandType =
+      val cardCount = hand.groupBy(identity).map(_._2.length).toList.sorted
 
       cardCount match
-        case _ :: Nil                => FiveOfAKind
+        case 5 :: Nil                => FiveOfAKind
         case 1 :: 4 :: Nil           => FourOfAKind
         case 2 :: 3 :: Nil           => FullHouse
         case 1 :: 1 :: 3 :: Nil      => ThreeOfAKind
@@ -27,12 +27,12 @@ object day7p2:
     def of(hand: List[Card]): HandType =
       val candidates = Card.values.filterNot(_ == Card.J)
 
-      def aux(jokers: Int, other: List[Card]): HandType =
+      def aux(jokers: Int, rest: List[Card]): HandType =
         jokers match
-          case 0 => HandType.of2(other)
+          case 0 => HandType.ofInternal(rest)
           case n => candidates
-              .map: cand =>
-                aux(n - 1, cand :: other)
+              .map: candidate =>
+                aux(n - 1, candidate :: rest)
               .max
 
       aux(hand.filter(_ == Card.J).length, hand.filterNot(_ == Card.J))
@@ -50,12 +50,10 @@ object day7p2:
 
   given Ordering[List[Card]] with
     def compare(as: List[Card], bs: List[Card]): Int =
-      val asHandType = HandType.of(as)
-      val bsHandType = HandType.of(bs)
-
-      val diff = Ordering[HandType].compare(asHandType, bsHandType)
+      val diff = Ordering[HandType].compare(HandType.of(as), HandType.of(bs))
       if diff != 0 then diff
       else
+        // Compare on first card matchup that differs
         as.zip(bs).find(_ != _).map(Ordering[Card].compare(_, _)).getOrElse(0)
 
   def solve(hands: List[(List[Card], Int)]): Int =
