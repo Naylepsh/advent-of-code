@@ -1,6 +1,6 @@
 import scala.util.chaining.*
 
-object day7:
+object day7p1:
   enum Card:
     case `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, T, J, Q, K, A
   object Card:
@@ -12,7 +12,7 @@ object day7:
       FiveOfAKind
 
   object HandType:
-    def ofHand(hand: List[Card]): HandType =
+    def of(hand: List[Card]): HandType =
       val cardCount = hand.groupBy(card => card).map(_._2.length).toList.sorted
 
       cardCount match
@@ -37,15 +37,15 @@ object day7:
 
   given Ordering[List[Card]] with
     def compare(as: List[Card], bs: List[Card]): Int =
-      val asHandType = HandType.ofHand(as)
-      val bsHandType = HandType.ofHand(bs)
+      val asHandType = HandType.of(as)
+      val bsHandType = HandType.of(bs)
 
       val diff = Ordering[HandType].compare(asHandType, bsHandType)
       if diff != 0 then diff
       else
         as.zip(bs).find(_ != _).map(Ordering[Card].compare(_, _)).getOrElse(0)
 
-  def solve1(hands: List[(List[Card], Int)]): Int =
+  def solve(hands: List[(List[Card], Int)]): Int =
     hands
       .sortBy(_._1)
       .zipWithIndex
@@ -53,10 +53,9 @@ object day7:
         val ((_, bid), idx) = current
         acc + bid * (idx + 1)
 
-@main def runDay7 =
-  import day7.*
+@main def runDay7p1 =
+  import day7p1.*
 
   val lines = scala.io.Source.fromFile("./day7.input").getLines.toList
 
-  // part 1
-  lines.map(parse).pipe(solve1.andThen(println))
+  lines.map(parse).pipe(solve.andThen(println))

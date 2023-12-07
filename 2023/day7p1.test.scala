@@ -1,5 +1,5 @@
 class Day7Tests extends munit.FunSuite:
-  import day7.*
+  import day7p1.*
   import Card.given
 
   test("card comparison"):
