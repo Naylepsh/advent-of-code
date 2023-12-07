@@ -1,5 +1,3 @@
-//> using dep org.typelevel::spire::0.18.0
-
 import scala.util.chaining.*
 import spire._
 import spire.math._
@@ -39,7 +37,7 @@ def solve(lines: List[String]): BigInt =
       wayCount(time, distance)
     .product
 
-@main def run: Unit =
+@main def runDay6: Unit =
   val lines = scala.io.Source.fromFile("./day6.input.bk").getLines.toList
   // part 1
   lines.pipe(solve.andThen(println))
