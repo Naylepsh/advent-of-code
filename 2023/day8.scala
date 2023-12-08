@@ -1,5 +1,9 @@
 import scala.annotation.tailrec
 import scala.util.chaining.*
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object day8:
   enum Direction:
@@ -62,23 +66,26 @@ object day8:
   def lcm(numbers: Seq[Long]): Long =
     numbers.reduce((a, b) => lcm(a, b))
 
-  def solveForGhost(paths: List[Path], directions: List[Direction]): Long = 
+  def solveForGhost(paths: List[Path], directions: List[Direction])(using
+  ExecutionContext): Long =
     paths
       .filter(_.label.endsWith("A"))
       .map: path =>
-        move(path.label, "Z", paths, directions)
+        Future:
+          move(path.label, "Z", paths, directions)
+      .pipe(Future.sequence)
+      .pipe(Await.result(_, Duration.Inf))
       .pipe(lcm)
 
 @main def runDay8 =
   import day8.*
 
-  val lines = scala.io.Source.fromFile("./day8.input").getLines.toList
+  val lines               = scala.io.Source.fromFile("./day8.input").getLines.toList
   val (directions, paths) = parse(lines)
 
   // part 1
   move("AAA", "ZZZ", paths, directions).pipe(println)
 
   // part 2
+  import ExecutionContext.Implicits.global
   solveForGhost(paths, directions).pipe(println)
-
-
