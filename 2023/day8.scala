@@ -1,9 +1,7 @@
 import scala.annotation.tailrec
-import scala.util.chaining.*
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration.Duration
+import scala.util.chaining.*
 
 object day8:
   enum Direction:
