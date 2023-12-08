@@ -1,5 +1,5 @@
 import scala.annotation.tailrec
-import scala.concurrent.{Await, Future, ExecutionContext}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration.Duration
 import scala.util.chaining.*
 
@@ -59,10 +59,9 @@ object day8:
 
     aux(startLabel, directions, 0)
 
-  def gcd(a: Long, b: Long): Long = if b == 0 then a else gcd(b, a % b)
-  def lcm(a: Long, b: Long): Long = (a * b) / gcd(a, b)
-  def lcm(numbers: Seq[Long]): Long =
-    numbers.reduce((a, b) => lcm(a, b))
+  def gcd(a: Long, b: Long): Long   = if b == 0 then a else gcd(b, a % b)
+  def lcm(a: Long, b: Long): Long   = (a * b) / gcd(a, b)
+  def lcm(numbers: Seq[Long]): Long = numbers.reduce(lcm(_, _))
 
   def solveForGhost(paths: List[Path], directions: List[Direction])(using
   ExecutionContext): Long =
@@ -89,7 +88,7 @@ object day8:
    * The only reason this works is because the input is "nice":
    *  - all A -> Z paths will form only one cycle. No branching to other Zs
    *  - path sizes of A -> Z and Z -> Z are the same
-   * If inputs were any different, this would work. 
+   * If inputs were any different, this would work.
    */
   import ExecutionContext.Implicits.global
   solveForGhost(paths, directions).pipe(println)
