@@ -37,33 +37,6 @@ object day8:
 
   def move(
       startLabel: String,
-      endLabel: String,
-      paths: List[Path],
-      directions: List[Direction]
-  ): Int =
-    @tailrec
-    def aux(
-        currentLabel: String,
-        directions: List[Direction],
-        stepCount: Int
-    ): Int =
-      if currentLabel == endLabel then stepCount
-      else
-        val path = paths.find(_.label == currentLabel).get
-        val nextLabel = directions.head match
-          case Direction.L => path.left
-          case Direction.R => path.right
-        aux(nextLabel, directions.rotate, stepCount + 1)
-
-    aux(startLabel, directions, 0)
-
-  def gcd(a: Long, b: Long): Long = if b == 0 then a else gcd(b, a % b)
-  def lcm(a: Long, b: Long): Long = (a * b) / gcd(a, b)
-  def lcm(numbers: Seq[Long]): Long =
-    numbers.reduce((a, b) => lcm(a, b))
-
-  def move2(
-      startLabel: String,
       endSuffix: String,
       paths: List[Path],
       directions: List[Direction]
@@ -84,11 +57,16 @@ object day8:
 
     aux(startLabel, directions, 0)
 
-  def solve2(paths: List[Path], directions: List[Direction]): Long = 
+  def gcd(a: Long, b: Long): Long = if b == 0 then a else gcd(b, a % b)
+  def lcm(a: Long, b: Long): Long = (a * b) / gcd(a, b)
+  def lcm(numbers: Seq[Long]): Long =
+    numbers.reduce((a, b) => lcm(a, b))
+
+  def solveForGhost(paths: List[Path], directions: List[Direction]): Long = 
     paths
       .filter(_.label.endsWith("A"))
       .map: path =>
-        move2(path.label, "Z", paths, directions)
+        move(path.label, "Z", paths, directions)
       .pipe(lcm)
 
 @main def runDay8 =
@@ -101,6 +79,6 @@ object day8:
   move("AAA", "ZZZ", paths, directions).pipe(println)
 
   // part 2
-  solve2(paths, directions).pipe(println)
+  solveForGhost(paths, directions).pipe(println)
 
 
