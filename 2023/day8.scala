@@ -84,6 +84,12 @@ object day8:
   // part 1
   move("AAA", "ZZZ", paths, directions).pipe(println)
 
-  // part 2
+  /**
+   * part 2
+   * The only reason this works is because the input is "nice":
+   *  - all A -> Z paths will form only one cycle. No branching to other Zs
+   *  - path sizes of A -> Z and Z -> Z are the same
+   * If inputs were any different, this would work. 
+   */
   import ExecutionContext.Implicits.global
   solveForGhost(paths, directions).pipe(println)
