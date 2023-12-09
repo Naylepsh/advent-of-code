@@ -42,7 +42,8 @@ object day9:
 
     aux(differences.map(_.head).reverse, 0)
 
-  def solve(extrapolate: List[List[Int]] => Int)(histories: List[List[Int]]): Int =
+  def solve(extrapolate: List[List[Int]] => Int)(histories: List[List[Int]])
+      : Int =
     histories
       .map: history =>
         extrapolate(prepareForExtrapolation(history))
