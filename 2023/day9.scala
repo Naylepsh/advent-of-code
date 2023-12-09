@@ -22,7 +22,7 @@ object day9:
       val diff = diffs(history)
       prepareForExtrapolation(diff, diff :: acc)
 
-  def extrapolate(differences: List[List[Int]]): Int =
+  def extrapolateP1(differences: List[List[Int]]): Int =
     @tailrec
     def aux(xs: List[Int], difference: Int): Int =
       xs match
@@ -30,9 +30,19 @@ object day9:
         case head :: tail =>
           aux(tail, head + difference)
 
-    aux(differences.map(_.last), 0)
+    aux(differences.map(_.last).reverse, 0)
 
-  def solve(histories: List[List[Int]]): Int =
+  def extrapolateP2(differences: List[List[Int]]): Int =
+    @tailrec
+    def aux(xs: List[Int], difference: Int): Int =
+      xs match
+        case Nil => difference
+        case head :: tail =>
+          aux(tail, head - difference)
+
+    aux(differences.map(_.head).reverse, 0)
+
+  def solve(extrapolate: List[List[Int]] => Int)(histories: List[List[Int]]): Int =
     histories
       .map: history =>
         extrapolate(prepareForExtrapolation(history))
@@ -41,5 +51,8 @@ object day9:
 @main def runDay9 =
   import day9.*
 
-  val lines = scala.io.Source.fromFile("./day9.input").getLines.toList
-  lines.map(parse).pipe(solve.andThen(println))
+  val lines = scala.io.Source.fromFile("./day9.input-copy").getLines.toList
+  // part 1
+  lines.map(parse).pipe(solve(extrapolateP1).andThen(println))
+  // part 2
+  lines.map(parse).pipe(solve(extrapolateP2).andThen(println))
