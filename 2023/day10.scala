@@ -14,7 +14,6 @@ def findStart(field: Field): Position =
   (x, y)
 
 def connected(field: Field, position: Position): Set[Position] =
-  // println(s"Checking connections for $position")
   val (x, y) = position
   field(y)(x) match
     case '|' => Set((x, y - 1), (x, y + 1))
@@ -25,12 +24,10 @@ def connected(field: Field, position: Position): Set[Position] =
     case 'F' => Set((x, y + 1), (x + 1, y))
     case '.' => Set()
     case 'S' =>
-      Set((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)).filter:
-        (newX, newY) =>
-          field.isDefinedAt(newX) && field(newY).isDefinedAt(newX) && connected(
-            field,
-            (newX, newY)
-          ).contains(position)
+      Set((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)).filter: (x, y) =>
+        field.isDefinedAt(x)
+          && field(y).isDefinedAt(x)
+          && connected(field, (x, y)).contains(position)
     case _ => Set()
 
 def findLoop(field: Field): Option[LazyList[Position]] =
