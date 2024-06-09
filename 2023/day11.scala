@@ -66,29 +66,21 @@ object Galaxies:
         extendColumns(_, expandedSpaces.columns.sorted(Ordering[Int].reverse))
       )
 
-  @tailrec
   private def extendRows(
       galaxies: Galaxies,
       expandedRows: ExpandedRows
   )(using offset: Int): Galaxies =
-    expandedRows match
-      case Nil => galaxies
-      case row :: tail =>
-        val extendedGalaxies = galaxies.map: galaxy =>
-          if galaxy.row > row then galaxy.moveRow else galaxy
-        extendRows(extendedGalaxies, tail)
+    expandedRows.foldLeft(galaxies): (galaxies, row) =>
+      galaxies.map: galaxy =>
+        if galaxy.row > row then galaxy.moveRow else galaxy
 
-  @tailrec
   private def extendColumns(
       galaxies: Galaxies,
       expandedColumns: ExpandedColumns
   )(using offset: Int): Galaxies =
-    expandedColumns match
-      case Nil => galaxies
-      case column :: tail =>
-        val extendedGalaxies = galaxies.map: galaxy =>
-          if galaxy.column > column then galaxy.moveColumn else galaxy
-        extendColumns(extendedGalaxies, tail)
+    expandedColumns.foldLeft(galaxies): (galaxies, column) =>
+      galaxies.map: galaxy =>
+        if galaxy.column > column then galaxy.moveColumn else galaxy
 
 def part(space: List[String])(using offset: Int): Long =
   import Galaxy.*
