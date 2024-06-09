@@ -18,7 +18,7 @@ class Day11Tests extends munit.FunSuite:
     assert(columns == expandedSpaces.columns)
 
   test("extending galaxy"):
-    val extendedGalaxies = Galaxies.extend(galaxies, expandedSpaces)
+    val extendedGalaxies = Galaxies.extend(galaxies, expandedSpaces)(using 1)
     assert(
       extendedGalaxies.sorted ==
         List(
