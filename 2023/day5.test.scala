@@ -1,6 +1,3 @@
-//> using test.dep org.scalameta::munit::0.7.29
-//> using option -Yrangepos
-
 class Day5Tests extends munit.FunSuite:
   test("ThingMap parsing"):
     val input = """seed-to-soil map:
