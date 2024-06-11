@@ -20,11 +20,10 @@ class SpringCounter:
       damagedSprings: List[Int],
       currentStreakLength: Int
   ): Long =
-    cache
-      .getOrElseUpdate(
-        (spring, damagedSprings, currentStreakLength),
-        countCacheless(spring, damagedSprings, currentStreakLength)
-      )
+    cache.getOrElseUpdate(
+      (spring, damagedSprings, currentStreakLength),
+      countCacheless(spring, damagedSprings, currentStreakLength)
+    )
 
   private def countCacheless(
       spring: List[Char],
