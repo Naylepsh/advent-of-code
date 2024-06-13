@@ -40,10 +40,8 @@ def calculateNearestFreeSpots(platform: Platform): List[List[Int]] =
 
 def calculateLoad(platform: Platform) =
   val height = platform.length
-  val spots  = calculateNearestFreeSpots(platform)
-
   platform
-    .zip(spots)
+    .zip(calculateNearestFreeSpots(platform))
     .foldLeft(0):
       case (acc, (row, spots)) =>
         acc + row
