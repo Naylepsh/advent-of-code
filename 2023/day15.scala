@@ -1,7 +1,8 @@
 package day15
 
+import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.Map
 import scala.util.chaining.*
-import scala.collection.mutable.{Map as MMap, LinkedHashMap as OrderedMap}
 
 type Hash = Int
 object Hash:
@@ -18,26 +19,20 @@ def part1(s: String): Int =
 def part2(s: String): Int =
   val add    = "(.+)=(\\d+)".r
   val remove = "(.+)-".r
-  val boxes  = MMap.empty[Hash, OrderedMap[String, Int]]
+  val boxes  = Map.empty[Hash, LinkedHashMap[String, Int]]
 
   parse(s).foreach:
     case add(key, value) =>
-      boxes.updateWith(Hash(key)):
-        case Some(values) =>
-          values(key) = value.toInt
-          Some(values)
-        case None =>
-          Some(OrderedMap(key -> value.toInt))
+      val hash = Hash(key)
+      boxes.get(hash) match
+        case Some(box) => box(key) = value.toInt
+        case None      => boxes.update(hash, LinkedHashMap(key -> value.toInt))
     case remove(key) =>
-      boxes.updateWith(Hash(key)):
-        case Some(values) =>
-          values.remove(key)
-          Some(values)
-        case None => None
+      boxes.get(Hash(key)).foreach(_.remove(key))
 
   (0 to 256).foldLeft(0): (acc, boxIdx) =>
     acc + (boxIdx + 1) * boxes
-      .getOrElse(boxIdx, OrderedMap.empty)
+      .getOrElse(boxIdx, LinkedHashMap.empty)
       .zipWithIndex
       .foldLeft(0):
         case (acc, ((_, value), idx)) =>
