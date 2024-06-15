@@ -16,27 +16,41 @@ def parse(s: String): List[String] =
 def part1(s: String): Int =
   parse(s).map(Hash(_)).foldLeft(0)(_ + _)
 
+type Boxes = Map[Hash, LinkedHashMap[String, Int]]
+object Boxes:
+  def empty: Boxes = Map.empty[Hash, LinkedHashMap[String, Int]]
+
+  extension (self: Boxes)
+    def add(key: String, value: Int): Unit =
+      val hash = Hash(key)
+      self.get(hash) match
+        case Some(box) => box(key) = value
+        case None      => self.update(hash, LinkedHashMap(key -> value))
+
+    def remove(key: String): Unit =
+      self.get(Hash(key)).foreach(_.remove(key))
+
+    def focusingPower: Int =
+      (0 to 256).foldLeft(0): (acc, boxIdx) =>
+        acc + (boxIdx + 1) * self
+          .getOrElse(boxIdx, LinkedHashMap.empty)
+          .zipWithIndex
+          .foldLeft(0):
+            case (acc, ((_, value), idx)) =>
+              acc + (idx + 1) * value
+
 def part2(s: String): Int =
   val add    = "(.+)=(\\d+)".r
   val remove = "(.+)-".r
-  val boxes  = Map.empty[Hash, LinkedHashMap[String, Int]]
+  val boxes  = Boxes.empty
+
+  import Boxes.*
 
   parse(s).foreach:
-    case add(key, value) =>
-      val hash = Hash(key)
-      boxes.get(hash) match
-        case Some(box) => box(key) = value.toInt
-        case None      => boxes.update(hash, LinkedHashMap(key -> value.toInt))
-    case remove(key) =>
-      boxes.get(Hash(key)).foreach(_.remove(key))
+    case add(key, value) => boxes.add(key, value.toInt)
+    case remove(key)     => boxes.remove(key)
 
-  (0 to 256).foldLeft(0): (acc, boxIdx) =>
-    acc + (boxIdx + 1) * boxes
-      .getOrElse(boxIdx, LinkedHashMap.empty)
-      .zipWithIndex
-      .foldLeft(0):
-        case (acc, ((_, value), idx)) =>
-          acc + (idx + 1) * value
+  boxes.focusingPower
 
 @main
 def run: Unit =
