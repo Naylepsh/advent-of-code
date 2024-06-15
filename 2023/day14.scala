@@ -5,58 +5,51 @@ import cats.syntax.all.*
 import scala.annotation.tailrec
 import scala.util.chaining.*
 
-type Tile = '.' | '#' | 'O'
-object Tile:
-  def of: Char => Option[Tile] =
-    case v @ ('.' | '#' | 'O') => Some(v)
-    case _                     => None
-
-type Platform = List[List[Tile]]
+type Platform = List[String]
 object Platform:
-  val empty: Platform = List.empty[List[Tile]]
+  extension (platform: Platform)
+    def tilt: Platform =
+      platform.map: row =>
+        "#+|[^#]+".r.findAllIn(row.mkString).map(_.sorted.reverse).mkString
 
-def parse(input: List[String]): Option[Platform] =
-  val initial: Option[Platform] = Platform.empty.some
-  input
-    .foldLeft(initial): (acc, line) =>
-      val xs: Option[List[Tile]] = line.toList.traverse(v => Tile.of(v))
-      acc.flatMap(p => xs.map(_ :: p))
-    .map(_.reverse)
+    def rotateClockwise: Platform =
+      platform.transpose.map(_.reverse.mkString)
 
-def calculateNearestFreeSpots(platform: Platform): List[List[Int]] =
-  val initial = platform.head.map(_ => 0)
-  platform.zipWithIndex
-    .foldLeft(initial :: Nil):
-      case (acc, (row, idx)) =>
-        val adjustedRow = row
-          .zip(acc.head)
-          .map:
-            case ('.', previous) => previous
-            case ('O', previous) => previous + 1
-            case ('#', _)        => idx + 1
-        adjustedRow :: acc
-    .reverse
-    .tail
+    def rotateCounterClockwise: Platform =
+      platform.map(_.reverse).transpose.map(_.mkString)
 
-def calculateLoad(platform: Platform) =
-  val height = platform.length
-  platform
-    .zip(calculateNearestFreeSpots(platform))
-    .foldLeft(0):
-      case (acc, (row, spots)) =>
-        acc + row
-          .zip(spots)
-          .foldLeft(0):
-            case (acc, ('O', spot)) =>
-              acc + (height - spot + 1)
-            case (acc, _) => acc
+    def load: Int =
+      platform.zipWithIndex
+        .foldMap((row, i) => row.count(_ == 'O') * (platform.length - i))
+
+  @tailrec
+  def cycle(
+      platform: Platform,
+      i: Int,
+      cache: Map[Platform, Int] = Map.empty
+  ): Platform =
+    cache.get(platform) match
+      case Some(loopStartIdx) =>
+        cache.map(_.swap)(loopStartIdx + i % (cache.size - loopStartIdx))
+      case None =>
+        cycle(
+          platform.tilt.rotateClockwise.tilt.rotateClockwise.tilt.rotateClockwise.tilt.rotateClockwise,
+          i - 1,
+          cache.updated(platform, cache.size)
+        )
+
+  val part1: Platform => Int =
+    _.rotateCounterClockwise.tilt.rotateClockwise.load
+
+  val part2: Platform => Int =
+    _.rotateCounterClockwise.pipe(cycle(_, 1_000_000_000).rotateClockwise.load)
 
 @main def run: Unit =
+  import Platform.*
   scala.io.Source
     .fromFile("./day14.input")
     .getLines()
     .toList
-    .pipe(parse)
-    .pipe(_.map(calculateLoad))
-    // .pipe(solve(findReflectionIndex))
+    // .pipe(part1)
+    .pipe(part2)
     .pipe(println)
