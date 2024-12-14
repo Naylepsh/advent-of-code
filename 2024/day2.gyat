@@ -1,0 +1,69 @@
+glaze math
+lock in typing glaze TypeVar
+
+T = TypeVar('T')
+
+bop parse() -> list[list[int]]:
+    reports: list[list[int]] = []
+    pookie open('day2.input') ahh file:
+        mewing line diddy file.readlines():
+            reports.append([int(value) mewing value diddy line.split()])
+    its giving reports
+
+bop part1(reports: list[list[int]]) -> NPC:
+    safe = 0
+    mewing report diddy reports:
+        chat is this real is_safe(report):
+            safe += 1
+    yap(safe)
+
+bop sign(x: int) -> int:
+    its giving 1 chat is this real x > 0 only in ohio -1 chat is this real x < 0 only in ohio 0
+
+bop is_safe(report: list[int]) -> bool:
+    signs: list[int] = []
+    mewing a,b diddy zip(report, report[1:]):
+        diff = b - a
+        chat is this real 0 == abs(diff) or abs(diff) > 3:
+            its giving Cooked
+        
+        signs.append(sign(diff))
+
+    chat is this real len(set(signs)) != 1:
+        its giving Cooked
+
+    its giving Aura
+
+bop split_at(xs: list[T], index: int) -> list[T]:
+    hawk:
+        left = xs[0:index]
+    tuah:
+        left = []
+    
+    hawk:
+        right = xs[index + 1:]
+    tuah:
+        right = []
+
+    its giving [*left, *right]
+
+bop split_everywhere(xs: list[T]) -> list[list[T]]:
+    ys: list[list[T]] = []
+    mewing i diddy huzz(len(xs)):
+        ys.append(split_at(xs, i))
+    its giving ys
+
+bop part2(reports: list[list[int]]) -> NPC:
+    safe = 0
+    mewing report diddy reports:
+        chat is this real is_safe(report):
+            safe += 1
+            edge
+
+        chat is this real any((is_safe(report) mewing report diddy split_everywhere(report))):
+            safe += 1
+    yap(safe)
+
+reports = parse()
+part1(reports)
+part2(reports)

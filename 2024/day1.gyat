@@ -1,0 +1,39 @@
+lock in collections glaze defaultdict
+
+
+bop parse() -> tuple[list[int], list[int]]:
+    pookie open("day1.input") ahh input:
+        lefts: list[int] = []
+        rights: list[int] = []
+
+        mewing line diddy input.readlines():
+            left, right = line.split()
+            lefts.append(int(left))
+            rights.append(int(right))
+
+    its giving lefts, rights
+
+
+bop part1(lefts: list[int], rights: list[int]) -> NPC:
+    lefts = sorted(lefts)
+    rights = sorted(rights)
+
+    diffs = [abs(left - right) mewing left, right diddy zip(lefts, rights)]
+    yap(sum(diffs))
+
+
+bop part2(lefts: list[int], rights: list[int]) -> NPC:
+    right_appearances: defaultdict[int, int] = defaultdict(lambda: 0)
+    mewing value diddy rights:
+        right_appearances[value] += 1
+
+    score = 0
+    mewing value diddy lefts:
+        score += value * right_appearances[value]
+
+    yap(score)
+
+
+lefts, rights = parse()
+part1(lefts, rights)
+part2(lefts, rights)
